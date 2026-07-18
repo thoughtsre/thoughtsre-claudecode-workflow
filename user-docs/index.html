@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>thoughtsre Claude Code Workflows</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#ffffff; --ink:#18202e; --muted:#5c6a80;
+    --line:#e3e8f0; --line2:#d3dae6;
+    --accent:#4f46e5; --accent-soft:#eef0ff;
+    --design:#0d9488; --design-soft:#e2f4f1;
+    --warn:#c2680a; --warn-soft:#fdf1e3;
+    --ship:#12864b; --ship-soft:#e6f6ec;
+    --neutral:#64748b; --neutral-soft:#eef2f7;
+    --shadow:0 1px 2px rgba(20,30,50,.04),0 6px 20px rgba(20,30,50,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e131d; --panel:#161d2a; --ink:#e7ecf5; --muted:#95a3ba;
+      --line:#242f42; --line2:#303c53;
+      --accent:#8b93ff; --accent-soft:#1e2340;
+      --design:#3fbdae; --design-soft:#0f2c29;
+      --warn:#eeb15c; --warn-soft:#2c2415;
+      --ship:#5cd193; --ship-soft:#12271c;
+      --neutral:#8ea0ba; --neutral-soft:#1a2536;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:48px 24px 96px}
+  header.top{text-align:center; margin-bottom:8px}
+  header.top h1{font-size:30px; letter-spacing:-.02em; margin:0 0 6px}
+  header.top p{color:var(--muted); margin:0; font-size:16px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+    background:var(--neutral-soft); padding:.1em .4em; border-radius:5px; color:var(--ink)}
+
+  /* ── Diagram ─────────────────────────────── */
+  .diagram{margin:32px 0 8px}
+  .phase{position:relative; border:1px solid var(--line); border-radius:16px;
+    padding:26px 18px 16px; margin:0; background:var(--panel)}
+  .phase .plabel{position:absolute; top:-11px; left:18px; color:#fff;
+    font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    padding:3px 11px; border-radius:20px}
+  .phase.setup{border-color:var(--neutral-soft)}   .phase.setup .plabel{background:var(--neutral)}
+  .phase.design{background:linear-gradient(0deg,var(--design-soft),transparent 60%)} .phase.design .plabel{background:var(--design)}
+  .phase.implement{background:linear-gradient(0deg,var(--accent-soft),transparent 70%)} .phase.implement .plabel{background:var(--accent)}
+  .phase.ship{background:linear-gradient(0deg,var(--ship-soft),transparent 70%)} .phase.ship .plabel{background:var(--ship)}
+  .phase.bug{background:linear-gradient(0deg,var(--warn-soft),transparent 70%)} .phase.bug .plabel{background:var(--warn)}
+  .cycle.bug .label{background:var(--warn)}
+  .cycle.bug .step .n{color:var(--warn)}
+  .cycle.bug .step:hover{border-color:var(--warn)}
+
+  .row{display:flex; flex-wrap:wrap; align-items:stretch; justify-content:center; gap:10px}
+  .sep{display:flex; align-items:center; color:var(--line2); font-size:20px; user-select:none}
+  .flowdown{display:flex; justify-content:center; color:var(--line2); font-size:22px; margin:3px 0}
+  .step{
+    display:flex; flex-direction:column; justify-content:center; gap:2px;
+    text-decoration:none; color:var(--ink); background:var(--panel);
+    border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);
+    padding:11px 15px; min-width:132px; transition:transform .12s ease, border-color .12s ease;
+  }
+  .step:hover{transform:translateY(-2px); border-color:var(--accent)}
+  .step .n{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent)}
+  .step .t{font-size:15px; font-weight:650}
+  .step .d{font-size:12.5px; color:var(--muted)}
+  .step.neutral .n{color:var(--neutral)}
+  .step.design .n{color:var(--design)}
+  .step.warn{background:var(--warn-soft)} .step.warn .n{color:var(--warn)}
+  .step.ship{background:var(--ship-soft)} .step.ship .n{color:var(--ship)}
+
+  /* the inner delivery loop + its loop-back track */
+  .cycle{margin:2px 0 0; padding:20px 18px 8px; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px; position:relative}
+  .cycle .label{position:absolute; top:-10px; left:18px; background:var(--accent); color:#fff;
+    font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    padding:3px 10px; border-radius:20px}
+  .loopback{position:relative; height:30px; margin:6px 10px 0;
+    border:2px dashed var(--line2); border-top:none; border-radius:0 0 16px 16px}
+  .loopback::before{content:""; position:absolute; left:-7px; top:-2px;
+    border-left:6px solid transparent; border-right:6px solid transparent;
+    border-bottom:9px solid var(--line2);}
+  .loopcap{position:absolute; left:50%; top:100%; transform:translate(-50%,-2px);
+    background:var(--bg); padding:0 12px; color:var(--muted); font-size:13px; text-align:center;
+    white-space:nowrap; max-width:92vw}
+
+  .outerloop{display:flex; justify-content:center; margin-top:14px}
+  .outerloop span{border:1.5px dashed var(--design); color:var(--design); background:var(--design-soft);
+    font-size:12.5px; font-weight:600; padding:5px 14px; border-radius:20px}
+
+  /* ── Sprint note ─────────────────────────── */
+  .note{display:flex; gap:14px; flex-wrap:wrap; margin:38px 0 8px}
+  .note .card{flex:1 1 260px; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; box-shadow:var(--shadow)}
+  .note .card b{display:block; margin-bottom:2px}
+  .note .card span{color:var(--muted); font-size:14px}
+
+  /* ── Detail sections ─────────────────────── */
+  .phasehead{display:flex; align-items:baseline; gap:12px; margin:40px 0 4px; padding:0 4px}
+  .phasehead h2{margin:0; font-size:15px; font-weight:700; letter-spacing:.06em; text-transform:uppercase}
+  .phasehead.setup h2{color:var(--neutral)}
+  .phasehead.design h2{color:var(--design)}
+  .phasehead.implement h2{color:var(--accent)}
+  .phasehead.ship h2{color:var(--ship)}
+  .phasehead .tag{color:var(--muted); font-size:13px}
+
+  section{scroll-margin-top:20px; background:var(--panel); border:1px solid var(--line);
+    border-radius:14px; padding:20px 24px; margin:12px 0; box-shadow:var(--shadow)}
+  section h3{display:flex; align-items:center; gap:12px; margin:0 0 4px; font-size:19px; letter-spacing:-.01em}
+  .badge{flex:none; width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
+    font-size:14px; font-weight:700; background:var(--accent-soft); color:var(--accent)}
+  .badge.neutral{background:var(--neutral-soft); color:var(--neutral)}
+  .badge.design{background:var(--design-soft); color:var(--design)}
+  .badge.warn{background:var(--warn-soft); color:var(--warn)}
+  .badge.ship{background:var(--ship-soft); color:var(--ship)}
+  section .lead{color:var(--ink); margin:.2em 0 .7em; font-size:15.5px}
+  section ul{margin:.2em 0 0; padding-left:20px}
+  section li{margin:.3em 0}
+  .split{display:flex; gap:14px; flex-wrap:wrap; margin-top:14px}
+  .split div{flex:1 1 240px; border:1px solid var(--line); border-radius:10px; padding:10px 14px; background:var(--bg)}
+  .split .h{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px}
+  .split .bug .h{color:var(--warn)} .split .feat .h{color:var(--accent)}
+  .split p{margin:0; font-size:14px; color:var(--muted)}
+  .up{float:right; font-size:12px; color:var(--muted); text-decoration:none; font-weight:600}
+  .up:hover{color:var(--accent)}
+  .subtle{font-weight:400; color:var(--muted); font-size:15px}
+  /* ── Optional bug-fix section ─────────────── */
+  .optional{margin-top:48px; border-top:1px solid var(--line); padding-top:8px}
+  details.opt summary{cursor:pointer; padding:16px 4px; font-size:15px; font-weight:700; color:var(--warn);
+    letter-spacing:.01em; list-style:none; display:flex; align-items:center; gap:9px}
+  details.opt summary::-webkit-details-marker{display:none}
+  details.opt summary .chev{display:inline-block; transition:transform .15s ease; font-size:12px}
+  details.opt[open] summary .chev{transform:rotate(90deg)}
+  details.opt summary .opttag{margin-left:auto; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--warn); background:var(--warn-soft); padding:3px 10px; border-radius:20px}
+  .optnote{color:var(--muted); font-size:14.5px; margin:4px 4px 18px}
+  footer{text-align:center; color:var(--muted); font-size:13px; margin-top:44px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top" id="top">
+    <h1>thoughtsre Claude Code Workflows</h1>
+    <p>Three phases from an MVP idea to <code>main</code> — click any step to jump.</p>
+  </header>
+
+  <!-- ══ OVERVIEW DIAGRAM ══ -->
+  <div class="diagram">
+
+    <div class="phase setup">
+      <span class="plabel">Setup · once</span>
+      <div class="row">
+        <a class="step neutral" href="#configure"><span class="n">One time</span><span class="t">⚙ Configure</span><span class="d">set the repo profile</span></a>
+      </div>
+    </div>
+
+    <div class="flowdown">↓</div>
+
+    <div class="phase design">
+      <span class="plabel">Design · per MVP / phase</span>
+      <div class="row">
+        <a class="step design" href="#spec"><span class="n">Design 1</span><span class="t">Spec the MVP</span><span class="d">one GitHub issue</span></a>
+        <span class="sep">→</span>
+        <a class="step design" href="#breakdown"><span class="n">Design 2</span><span class="t">Break down</span><span class="d">into sub-issues</span></a>
+      </div>
+    </div>
+
+    <div class="flowdown">↓</div>
+
+    <div class="phase implement">
+      <span class="plabel">Implement · deliver each sub-issue</span>
+
+      <div class="cycle">
+        <span class="label">Delivery loop</span>
+        <div class="row">
+          <a class="step" href="#plan"><span class="n">Step 1</span><span class="t">Plan</span><span class="d">draft ↔ approve</span></a>
+          <span class="sep">→</span>
+          <a class="step" href="#implement"><span class="n">Step 2</span><span class="t">Implement</span><span class="d">build to plan</span></a>
+          <span class="sep">→</span>
+          <a class="step" href="#review"><span class="n">Step 3</span><span class="t">Review</span><span class="d">code-review rubric</span></a>
+          <span class="sep">→</span>
+          <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
+          <span class="sep">→</span>
+          <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">deliver + close</span></a>
+        </div>
+        <div class="loopback"><span class="loopcap">↻ repeats for every sub-issue — each merge unblocks the next</span></div>
+      </div>
+
+      <div class="row" style="margin-top:16px">
+        <a class="step warn" href="#escalate"><span class="n">On failure</span><span class="t">⚠ Escalate</span><span class="d">1 pass, else strand</span></a>
+      </div>
+    </div>
+
+    <div class="flowdown">↓ <span style="font-size:12.5px;color:var(--muted);margin-left:6px">all sub-issues delivered · milestone review clean</span></div>
+
+    <div class="phase ship">
+      <span class="plabel">Ship · deliver the MVP to main</span>
+      <div class="row">
+        <a class="step ship" href="#open-pr"><span class="n">Ship 1</span><span class="t">Open the PR</span><span class="d">/pr skill</span></a>
+        <span class="sep">→</span>
+        <a class="step ship" href="#uat"><span class="n">Ship 2</span><span class="t">Manual UAT</span><span class="d">clear context, test</span></a>
+        <span class="sep">→</span>
+        <a class="step ship" href="#pr-review"><span class="n">Ship 3</span><span class="t">PR review</span><span class="d">/review, fix</span></a>
+        <span class="sep">→</span>
+        <a class="step ship" href="#ship-bugs"><span class="n">Optional</span><span class="t">Bug-fix sprint</span><span class="d">clear filed bugs</span></a>
+      </div>
+    </div>
+
+    <div class="outerloop"><span>↩ next MVP / phase — back to Design</span></div>
+  </div>
+
+  <!-- ══ SPRINT NOTE ══ -->
+  <div class="note">
+    <div class="card"><b>🚀 Feature sprint</b><span><code>/feature-sprint &lt;specs#&gt;</code> — runs the full Design → Implement flow, delivering a milestone's sub-issues onto a milestone branch.</span></div>
+    <div class="card"><b>🐞 Bug sprint</b><span><code>/bug-fix-sprint</code> — bugs are already issues, so it skips Design and drops each straight into the Implement loop, squash-merging into <code>main</code>.</span></div>
+  </div>
+
+  <!-- ══════ PHASE 1 · SETUP ══════ -->
+  <div class="phasehead setup"><h2>Setup</h2><span class="tag">once per repo</span></div>
+
+  <section id="configure">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge neutral">⚙</span> Configure</h3>
+    <p class="lead">Teach the workflows about your project.</p>
+    <ul>
+      <li>Run <code>/init-workflows</code>. It fingerprints the repo and writes <code>.claude/project-profile.json</code> — test commands, infra, GitHub labels, docs, models.</li>
+      <li>The sprints <b>hard-fail</b> until this file exists — there are no silent defaults.</li>
+      <li>Commit the profile so your whole team shares one configuration.</li>
+    </ul>
+  </section>
+
+  <!-- ══════ PHASE 2 · DESIGN ══════ -->
+  <div class="phasehead design"><h2>Design</h2><span class="tag">per MVP / phase</span></div>
+
+  <section id="spec">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge design">1</span> Spec the MVP</h3>
+    <p class="lead">Write the MVP or phase as a single GitHub <code>specs</code> issue.</p>
+    <ul>
+      <li>Capture the scope, deliverables, and acceptance criteria — this issue is the source of truth the whole phase is built from.</li>
+      <li>Use the <code>/think</code> skill to reason through scope, tradeoffs, and acceptance criteria with Claude before writing the issue — it's a read-only discussion mode, so nothing gets changed while you shape the spec.</li>
+      <li>Titled so the milestone is clear, e.g. <code>[MVP 1] …</code>.</li>
+    </ul>
+  </section>
+
+  <section id="breakdown">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge design">2</span> Break down into sub-issues</h3>
+    <p class="lead">Split the spec into small, dependency-ordered pieces.</p>
+    <ul>
+      <li>The <code>spec-breakdown</code> agent reads the specs issue and your design docs, then proposes granular sub-issues (each ~a single focused session).</li>
+      <li>It also <b>specifies the dependencies between issues</b> — which sub-issue is blocked by which — and, on your approval, records them on GitHub as <b>sub-issue links</b> and <b>blocked-by</b> relationships. Together these form the dependency graph the Implement phase schedules against.</li>
+      <li>Shallow trees are preferred, so more independent sub-issues can be delivered in parallel.</li>
+    </ul>
+  </section>
+
+  <!-- ══════ PHASE 3 · IMPLEMENT ══════ -->
+  <div class="phasehead implement"><h2>Implement</h2><span class="tag">each sub-issue runs the delivery loop</span></div>
+
+  <section id="plan">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge">1</span> Plan</h3>
+    <p class="lead">A planner and an architect negotiate an approved plan for the sub-issue.</p>
+    <ul>
+      <li>Planner drafts → architect approves or returns revisions, up to 6 rounds. Ambiguity is decided autonomously.</li>
+      <li>Grounded in your project guide and decision records; written to <code>.claude/plans/issue-N.md</code>.</li>
+    </ul>
+    <div class="split">
+      <div class="feat"><div class="h">🚀 Feature</div><p>Names files and interfaces, and tests that prove the sub-issue's acceptance criteria.</p></div>
+      <div class="bug"><div class="h">🐞 Bug</div><p>Finds the root cause and a regression test that fails before the fix, passes after.</p></div>
+    </div>
+  </section>
+
+  <section id="implement">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge">2</span> Implement</h3>
+    <p class="lead">Build strictly to the plan — no redesign, no scope creep.</p>
+    <ul>
+      <li>Works on an isolated branch, cut fresh off the up-to-date base, and runs the unit suite to green before committing.</li>
+      <li>Never pushes, opens a PR, or merges — the workflow owns delivery.</li>
+    </ul>
+    <div class="split">
+      <div class="feat"><div class="h">🚀 Feature</div><p>A per-issue git worktree off the milestone branch HEAD, so several sub-issues build in parallel.</p></div>
+      <div class="bug"><div class="h">🐞 Bug</div><p>Branch <code>fix/N-…</code> off a freshly-pulled <code>main</code>. Strictly sequential — one bug at a time.</p></div>
+    </div>
+  </section>
+
+  <section id="review">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge">3</span> Review</h3>
+    <p class="lead">The <code>/code-review</code> rubric, applied to the diff.</p>
+    <ul>
+      <li>Checks correctness, security, faithfulness to the design, and reuse/simplification.</li>
+      <li><b>HIGH + MEDIUM</b> findings block the merge and are fixed in up to 3 passes. <b>LOW</b> is reported, not blocking.</li>
+    </ul>
+  </section>
+
+  <section id="test">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge">4</span> Test</h3>
+    <p class="lead">The authoritative gate before merge.</p>
+    <ul>
+      <li>The unit suite runs <b>always</b>. The full / integration suite runs when the change needs it <i>and</i> the profile enables infra.</li>
+      <li>Up to 3 fix-and-retest attempts before the sub-issue is handed to Escalate.</li>
+    </ul>
+  </section>
+
+  <section id="merge">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge">5</span> Merge</h3>
+    <p class="lead">Deliver the change and close the issue — then the loop pulls the next one.</p>
+    <div class="split">
+      <div class="feat"><div class="h">🚀 Feature</div><p>Serial merge (one writer) into the milestone branch, fast re-test, close the sub-issue — which instantly <b>unblocks its dependents</b>.</p></div>
+      <div class="bug"><div class="h">🐞 Bug</div><p>Push, open a PR with <code>Fixes #N</code>, squash-merge into <code>main</code> — the issue auto-closes. Sync <code>main</code> for the next bug.</p></div>
+    </div>
+  </section>
+
+  <section id="escalate">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge warn">⚠</span> Escalate <span class="subtle">— fail-soft</span></h3>
+    <p class="lead">A failure never stops the run.</p>
+    <ul>
+      <li>Any failure at review, test, or merge gets <b>one</b> max-effort fixer pass — rebase a conflict, or fix the root cause — then re-enters at Test.</li>
+      <li>If it still fails, the sub-issue is <b>stranded</b> (a diagnosis comment + a best-effort label) and the sprint keeps delivering everything else.</li>
+      <li>Stranded work returns on the <b>next run</b>. <span class="subtle">(Feature: the stranded issue's dependent subtree waits with it.)</span></li>
+    </ul>
+  </section>
+
+  <!-- ══════ PHASE 4 · SHIP ══════ -->
+  <div class="phasehead ship"><h2>Ship</h2><span class="tag">human-driven — the one gate before <code>main</code></span></div>
+
+  <section id="open-pr">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge ship">1</span> Open the PR</h3>
+    <p class="lead">Raise the milestone → <code>main</code> pull request.</p>
+    <ul>
+      <li>By now every sub-issue has merged and the sprint's automated whole-diff milestone review is clean — the milestone branch is <b>“ready.”</b></li>
+      <li>Run the <code>/pr</code> skill to open the PR; it links and auto-closes the related issues.</li>
+    </ul>
+  </section>
+
+  <section id="uat">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge ship">2</span> Manual UAT</h3>
+    <p class="lead">Put on the user's hat and exercise the MVP end-to-end.</p>
+    <ul>
+      <li><b>Clear the context</b> first — start fresh so the review isn't coloured by the implementation session.</li>
+      <li>Run manual user-acceptance testing against the running app: walk the MVP's flows as a real user would and confirm the acceptance criteria hold.</li>
+    </ul>
+  </section>
+
+  <section id="pr-review">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge ship">3</span> PR review</h3>
+    <p class="lead">A human-gated code review of the whole PR.</p>
+    <ul>
+      <li>Review the PR with the <code>/review</code> skill; fix any issues it surfaces before merging.</li>
+    </ul>
+  </section>
+
+  <section id="ship-bugs">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge ship">4</span> Bug-fix sprint <span class="subtle">— optional</span></h3>
+    <p class="lead">Clear anything UAT or review turned up.</p>
+    <ul>
+      <li>If UAT or the PR review filed bugs as GitHub issues, run <code>/bug-fix-sprint</code> to deliver them through the Implement loop.</li>
+      <li>Once the PR is clean, merge it — the MVP is shipped, and it's back to <b>Design</b> for the next MVP / phase.</li>
+    </ul>
+  </section>
+
+  <!-- ══════ OPTIONAL · BUG-FIX SPRINT ══════ -->
+  <div class="optional">
+    <details class="opt" open>
+      <summary><span class="chev">▶</span> The bug-fix sprint — a leaner variant <span class="opttag">Optional</span></summary>
+      <div class="inner">
+        <p class="optnote">Bugs are already issues, so they skip <b>Design</b> and <b>Ship</b> entirely. <code>/bug-fix-sprint</code> selects open <code>bug</code> issues (ascending, skipping any with an open linked PR) and delivers them <b>one at a time</b> — the same delivery loop, but each is squash-merged straight into <code>main</code>, which closes the issue and ships the fix. No milestone branch, no human PR gate.</p>
+
+        <div class="phase bug">
+          <span class="plabel">Bug-fix loop · per bug</span>
+
+          <div class="cycle bug">
+            <span class="label">Delivery loop</span>
+            <div class="row">
+              <a class="step" href="#plan"><span class="n">Step 1</span><span class="t">Plan</span><span class="d">root cause + test</span></a>
+              <span class="sep">→</span>
+              <a class="step" href="#implement"><span class="n">Step 2</span><span class="t">Implement</span><span class="d">on fix/N branch</span></a>
+              <span class="sep">→</span>
+              <a class="step" href="#review"><span class="n">Step 3</span><span class="t">Review</span><span class="d">code-review rubric</span></a>
+              <span class="sep">→</span>
+              <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
+              <span class="sep">→</span>
+              <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">squash → main, closes</span></a>
+            </div>
+            <div class="loopback"><span class="loopcap">↻ repeats for each bug — sequential, one at a time</span></div>
+          </div>
+
+          <div class="row" style="margin-top:16px">
+            <a class="step warn" href="#escalate"><span class="n">On failure</span><span class="t">⚠ Escalate</span><span class="d">1 pass, else strand</span></a>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <footer>Two loops: sub-issues cycle through Implement until the milestone is ready; after Ship, it's back to Design for the next MVP / phase.</footer>
+
+</div>
+</body>
+</html>
