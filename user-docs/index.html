@@ -158,7 +158,7 @@
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       thoughtsre/thoughtsre-claudecode-workflow
     </a>
-    <p>Three phases from an MVP idea to <code>main</code> — click any step to jump.</p>
+    <p>Three phases from an MVP idea to the default branch, after a one-time setup — click any step to jump.</p>
   </header>
 
   <!-- ══ OVERVIEW DIAGRAM ══ -->
@@ -211,7 +211,7 @@
     <div class="flowdown">↓ <span style="font-size:12.5px;color:var(--muted);margin-left:6px">all sub-issues delivered · milestone review clean</span></div>
 
     <div class="phase ship">
-      <span class="plabel">Ship · deliver the MVP to main</span>
+      <span class="plabel">Ship · deliver the MVP to the default branch</span>
       <div class="row">
         <a class="step ship" href="#open-pr"><span class="n">Ship 1</span><span class="t">Open the PR</span><span class="d">/pr skill</span></a>
         <span class="sep">→</span>
@@ -228,8 +228,8 @@
 
   <!-- ══ SPRINT NOTE ══ -->
   <div class="note">
-    <div class="card"><b>🚀 Feature sprint</b><span><code>/feature-sprint &lt;specs#&gt;</code> — runs the full Design → Implement flow, delivering a milestone's sub-issues onto a milestone branch.</span></div>
-    <div class="card"><b>🐞 Bug sprint</b><span><code>/bug-fix-sprint</code> — bugs are already issues, so it skips Design and drops each straight into the Implement loop, squash-merging into <code>main</code>.</span></div>
+    <div class="card"><b>🚀 Feature sprint</b><span><code>/feature-sprint &lt;specs#&gt;</code> — runs the Implement flow, delivering an already-broken-down milestone's sub-issues onto a milestone branch.</span></div>
+    <div class="card"><b>🐞 Bug sprint</b><span><code>/bug-fix-sprint</code> — bugs are already issues, so it skips Design and drops each straight into the Implement loop, squash-merging into the default branch.</span></div>
   </div>
 
   <!-- ══════ PHASE 1 · SETUP ══════ -->
@@ -272,7 +272,7 @@
   </section>
 
   <!-- ══════ PHASE 3 · IMPLEMENT ══════ -->
-  <div class="phasehead implement"><h2>Implement</h2><span class="tag">each sub-issue runs the delivery loop</span></div>
+  <div class="phasehead implement"><h2>Implement</h2><span class="tag">several sub-issues in flight at once — merge is linear</span></div>
 
   <section id="plan">
     <a class="up" href="#top">↑ diagram</a>
@@ -298,7 +298,7 @@
     </ul>
     <div class="split">
       <div class="feat"><div class="h">🚀 Feature</div><p>A per-issue git worktree off the milestone branch HEAD, so several sub-issues build in parallel.</p></div>
-      <div class="bug"><div class="h">🐞 Bug</div><p>Branch <code>fix/N-…</code> off a freshly-pulled <code>main</code>. Strictly sequential — one bug at a time.</p></div>
+      <div class="bug"><div class="h">🐞 Bug</div><p>Branch <code>fix/N-…</code> off the freshly-pulled default branch. Strictly sequential — one bug at a time.</p></div>
     </div>
   </section>
 
@@ -328,7 +328,7 @@
     <p class="lead">Deliver the change and close the issue — then the loop pulls the next one.</p>
     <div class="split">
       <div class="feat"><div class="h">🚀 Feature</div><p>Serial merge (one writer) into the milestone branch, fast re-test, close the sub-issue — which instantly <b>unblocks its dependents</b>.</p></div>
-      <div class="bug"><div class="h">🐞 Bug</div><p>Push, open a PR with <code>Fixes #N</code>, squash-merge into <code>main</code> — the issue auto-closes. Sync <code>main</code> for the next bug.</p></div>
+      <div class="bug"><div class="h">🐞 Bug</div><p>Push, open a PR with <code>Fixes #N</code>, squash-merge into the default branch — the issue auto-closes. Sync the default branch for the next bug.</p></div>
     </div>
   </section>
 
@@ -344,12 +344,12 @@
   </section>
 
   <!-- ══════ PHASE 4 · SHIP ══════ -->
-  <div class="phasehead ship"><h2>Ship</h2><span class="tag">human-driven — the one gate before <code>main</code></span></div>
+  <div class="phasehead ship"><h2>Ship</h2><span class="tag">human-driven — the one gate before the default branch</span></div>
 
   <section id="open-pr">
     <a class="up" href="#top">↑ diagram</a>
     <h3><span class="badge ship">1</span> Open the PR</h3>
-    <p class="lead">Raise the milestone → <code>main</code> pull request.</p>
+    <p class="lead">Raise the milestone → default branch pull request.</p>
     <ul>
       <li>By now every sub-issue has merged and the sprint's automated whole-diff milestone review is clean — the milestone branch is <b>“ready.”</b></li>
       <li>Run the <code>/pr</code> skill to open the PR; it links and auto-closes the related issues.</li>
@@ -390,7 +390,7 @@
     <details class="opt" open>
       <summary><span class="chev">▶</span> The bug-fix sprint — a leaner variant <span class="opttag">Optional</span></summary>
       <div class="inner">
-        <p class="optnote">Bugs are already issues, so they skip <b>Design</b> and <b>Ship</b> entirely. <code>/bug-fix-sprint</code> selects open <code>bug</code> issues (ascending, skipping any with an open linked PR) and delivers them <b>one at a time</b> — the same delivery loop, but each is squash-merged straight into <code>main</code>, which closes the issue and ships the fix. No milestone branch, no human PR gate.</p>
+        <p class="optnote">Bugs are already issues, so they skip <b>Design</b> and <b>Ship</b> entirely. <code>/bug-fix-sprint</code> selects open <code>bug</code> issues (ascending, skipping any with an open linked PR) and delivers them <b>one at a time</b> — the same delivery loop, but each is squash-merged straight into the default branch, which closes the issue and ships the fix. No milestone branch, no human PR gate.</p>
 
         <div class="phase bug">
           <span class="plabel">Bug-fix loop · per bug</span>
@@ -406,7 +406,7 @@
               <span class="sep">→</span>
               <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
               <span class="sep">→</span>
-              <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">squash → main, closes</span></a>
+              <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">squash → default, closes</span></a>
             </div>
             <div class="loopback"><span class="loopcap">↻ repeats for each bug — sequential, one at a time</span></div>
           </div>
