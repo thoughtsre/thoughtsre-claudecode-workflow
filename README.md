@@ -1,4 +1,4 @@
-# Claude Code Sprint Workflows
+# thoughtsre Claude Code Workflows
 
 A shareable template of autonomous, multi-agent development workflows for [Claude Code](https://claude.com/claude-code). Clone it into any GitHub-backed project and the sprints will plan, implement, review, test, and merge GitHub issues for you.
 
