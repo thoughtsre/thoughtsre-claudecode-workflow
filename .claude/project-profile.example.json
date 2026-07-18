@@ -1,0 +1,34 @@
+{
+  "repo": {
+    "claude_md": "CLAUDE.md",
+    "adr_glob": "docs/decisions/*.md",
+    "design_globs": ["docs/architecture/*.md", "docs/design/*.md"]
+  },
+  "tooling": {
+    "test_unit": "npm test -- --testPathIgnorePatterns=integration",
+    "test_full": "npm test",
+    "build": null,
+    "lint": null,
+    "preflight": ["node --version"]
+  },
+  "infra": {
+    "needs_infra": false,
+    "infra_up": null,
+    "migrate": null,
+    "secrets_note": null,
+    "infra_touched_hint": "migrations, docker, service wiring"
+  },
+  "github": {
+    "labels": { "bug": "bug", "specs": "specs", "stranded": "needs-human" },
+    "auto_create_stranded_label": true,
+    "milestone_branch_pattern": "mvp{N}",
+    "milestone_title_regex": "^\\[(.+?)\\]"
+  },
+  "review_emphasis": "",
+  "models": {
+    "planner": "claude-opus-4-8[1m]",
+    "impl": "claude-opus-4-8[1m]",
+    "review": "claude-sonnet-4-6",
+    "trailer": "Co-Authored-By: Claude <noreply@anthropic.com>"
+  }
+}

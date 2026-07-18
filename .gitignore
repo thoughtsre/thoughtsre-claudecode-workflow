@@ -1,0 +1,17 @@
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Claude Code local (machine-specific) settings — keep shared settings.json committed
+.claude/settings.local.json
+
+# Sprint-workflow runtime artifacts (generated per run, not source)
+.claude/plans/
+.claude/worktrees/
+.claude/.infra.lock
+
+# NOTE: .claude/project-profile.json is intentionally NOT ignored —
+# commit it so your team shares the same workflow configuration.
