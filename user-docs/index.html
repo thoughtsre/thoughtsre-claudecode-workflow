@@ -6,25 +6,27 @@
 <title>thoughtsre Claude Code Workflows</title>
 <style>
   :root{
-    --bg:#f6f8fb; --panel:#ffffff; --ink:#18202e; --muted:#5c6a80;
-    --line:#e3e8f0; --line2:#d3dae6;
-    --accent:#4f46e5; --accent-soft:#eef0ff;
+    --bg:#ffffff; --panel:#f6f7f9; --ink:#1c1e21; --muted:#5b6270;
+    --line:#e2e5ea; --line2:#d3d8e0;
+    --accent:#3457d5; --accent-soft:#eef1fd;
+    --code-bg:#f1f2f5; --code-text:#b5148a;
     --design:#0d9488; --design-soft:#e2f4f1;
     --warn:#c2680a; --warn-soft:#fdf1e3;
     --ship:#12864b; --ship-soft:#e6f6ec;
     --neutral:#64748b; --neutral-soft:#eef2f7;
-    --shadow:0 1px 2px rgba(20,30,50,.04),0 6px 20px rgba(20,30,50,.06);
+    --shadow:0 1px 3px rgba(20,22,30,.06);
   }
   @media (prefers-color-scheme:dark){
     :root{
-      --bg:#0e131d; --panel:#161d2a; --ink:#e7ecf5; --muted:#95a3ba;
-      --line:#242f42; --line2:#303c53;
-      --accent:#8b93ff; --accent-soft:#1e2340;
+      --bg:#16181d; --panel:#1d2027; --ink:#e7e9ee; --muted:#a0a6b3;
+      --line:#2b2f38; --line2:#39404f;
+      --accent:#8fa4ff; --accent-soft:#202544;
+      --code-bg:#1f222b; --code-text:#ff9ed6;
       --design:#3fbdae; --design-soft:#0f2c29;
       --warn:#eeb15c; --warn-soft:#2c2415;
       --ship:#5cd193; --ship-soft:#12271c;
       --neutral:#8ea0ba; --neutral-soft:#1a2536;
-      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+      --shadow:0 1px 3px rgba(0,0,0,.4);
     }
   }
   *{box-sizing:border-box}
@@ -34,7 +36,25 @@
     font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:960px; margin:0 auto; padding:48px 24px 96px}
+  .layout{display:grid; grid-template-columns:260px minmax(0,1fr); max-width:1180px; margin:0 auto; gap:48px}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    nav.toc{position:static !important; max-height:none !important}
+  }
+  nav.toc{position:sticky; top:0; align-self:start; padding:48px 16px 32px 24px;
+    max-height:100vh; overflow-y:auto; font-size:13.5px}
+  nav.toc .back-link{display:block; color:var(--muted); text-decoration:none; font-size:12.5px;
+    padding-bottom:14px; margin-bottom:18px; border-bottom:1px solid var(--line)}
+  nav.toc .back-link:hover{color:var(--accent)}
+  nav.toc .toc-title{text-transform:uppercase; letter-spacing:.06em; font-size:11px;
+    color:var(--muted); font-weight:600; margin-bottom:12px}
+  nav.toc ul{list-style:none; padding:0; margin:0}
+  nav.toc li{margin:2px 0}
+  nav.toc a{display:block; color:var(--muted); text-decoration:none; padding:5px 10px;
+    border-radius:6px; border-left:2px solid transparent}
+  nav.toc a:hover{background:var(--panel); color:var(--ink)}
+  nav.toc .sub{padding-left:18px; font-size:12.5px}
+  main{padding:48px 24px 96px 0; min-width:0}
   header.top{text-align:center; margin-bottom:8px}
   header.top h1{font-size:30px; letter-spacing:-.02em; margin:0 0 6px}
   header.top p{color:var(--muted); margin:0; font-size:16px}
@@ -45,7 +65,7 @@
   .repolink:hover{border-color:var(--accent); color:var(--accent)}
   .repolink svg{width:15px; height:15px; fill:currentColor; flex:none}
   code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
-    background:var(--neutral-soft); padding:.1em .4em; border-radius:5px; color:var(--ink)}
+    background:var(--code-bg); padding:1px 6px; border-radius:4px; color:var(--code-text)}
 
   /* ── Diagram ─────────────────────────────── */
   .diagram{margin:32px 0 8px}
@@ -54,11 +74,11 @@
   .phase .plabel{position:absolute; top:-11px; left:18px; color:#fff;
     font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
     padding:3px 11px; border-radius:20px}
-  .phase.setup{border-color:var(--neutral-soft)}   .phase.setup .plabel{background:var(--neutral)}
-  .phase.design{background:linear-gradient(0deg,var(--design-soft),transparent 60%)} .phase.design .plabel{background:var(--design)}
-  .phase.implement{background:linear-gradient(0deg,var(--accent-soft),transparent 70%)} .phase.implement .plabel{background:var(--accent)}
-  .phase.ship{background:linear-gradient(0deg,var(--ship-soft),transparent 70%)} .phase.ship .plabel{background:var(--ship)}
-  .phase.bug{background:linear-gradient(0deg,var(--warn-soft),transparent 70%)} .phase.bug .plabel{background:var(--warn)}
+  .phase.setup{border:2px solid var(--neutral)}     .phase.setup .plabel{background:var(--neutral)}
+  .phase.design{border:2px solid var(--design)}     .phase.design .plabel{background:var(--design)}
+  .phase.implement{border:2px solid var(--accent)}  .phase.implement .plabel{background:var(--accent)}
+  .phase.ship{border:2px solid var(--ship)}         .phase.ship .plabel{background:var(--ship)}
+  .phase.bug{border:2px solid var(--warn)}          .phase.bug .plabel{background:var(--warn)}
   .cycle.bug .label{background:var(--warn)}
   .cycle.bug .step .n{color:var(--warn)}
   .cycle.bug .step:hover{border-color:var(--warn)}
@@ -83,17 +103,28 @@
 
   /* the inner delivery loop + its loop-back track */
   .cycle{margin:2px 0 0; padding:20px 18px 8px; background:var(--panel);
-    border:1px solid var(--line); border-radius:14px; position:relative}
+    border:1px solid var(--line); border-radius:14px; position:relative;
+    display:flex; justify-content:center}
   .cycle .label{position:absolute; top:-10px; left:18px; background:var(--accent); color:#fff;
     font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
     padding:3px 10px; border-radius:20px}
-  .loopback{position:relative; height:30px; margin:6px 10px 0;
+  /* loopwrap shrinks to the row's actual (nowrap) content width, so the bracket
+     below — sized as a % of loopwrap — always matches the row exactly, not the card */
+  .loopwrap{display:inline-block; max-width:100%}
+  /* sized down + kept to one row so it fits the narrower main column next to the ToC */
+  .cycle .row{flex-wrap:nowrap; overflow-x:auto; gap:6px; padding-bottom:2px}
+  .cycle .row .step{min-width:102px; flex:0 0 auto; padding:8px 9px}
+  .cycle .row .step .n{font-size:9.5px}
+  .cycle .row .step .t{font-size:12.5px}
+  .cycle .row .step .d{font-size:10px}
+  .cycle .row .sep{font-size:15px}
+  .loopback{width:calc(100% - 20px); position:relative; height:30px; margin:6px 10px 0;
     border:2px dashed var(--line2); border-top:none; border-radius:0 0 16px 16px}
   .loopback::before{content:""; position:absolute; left:-7px; top:-2px;
     border-left:6px solid transparent; border-right:6px solid transparent;
     border-bottom:9px solid var(--line2);}
   .loopcap{position:absolute; left:50%; top:100%; transform:translate(-50%,-2px);
-    background:var(--bg); padding:0 12px; color:var(--muted); font-size:13px; text-align:center;
+    background:var(--panel); padding:0 12px; color:var(--muted); font-size:13px; text-align:center;
     white-space:nowrap; max-width:92vw}
 
   .outerloop{display:flex; justify-content:center; margin-top:14px}
@@ -150,7 +181,37 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="layout">
+
+<nav class="toc">
+  <a class="back-link" href="docs-structure-guide.html">📚 Docs structure guide →</a>
+  <div class="toc-title">Contents</div>
+  <ul>
+    <li><a href="#configure">Configure</a></li>
+    <li><a href="#spec">Spec the MVP</a></li>
+    <li><a href="#breakdown">Break down into sub-issues</a></li>
+    <li><a href="#plan">Implement loop</a>
+      <ul>
+        <li class="sub"><a href="#plan">Plan</a></li>
+        <li class="sub"><a href="#implement">Implement</a></li>
+        <li class="sub"><a href="#review">Review</a></li>
+        <li class="sub"><a href="#test">Test</a></li>
+        <li class="sub"><a href="#merge">Merge</a></li>
+        <li class="sub"><a href="#escalate">Escalate</a></li>
+      </ul>
+    </li>
+    <li><a href="#open-pr">Ship</a>
+      <ul>
+        <li class="sub"><a href="#open-pr">Open the PR</a></li>
+        <li class="sub"><a href="#uat">Manual UAT</a></li>
+        <li class="sub"><a href="#pr-review">PR review</a></li>
+        <li class="sub"><a href="#ship-bugs">Bug-fix sprint</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+<main>
 
   <header class="top" id="top">
     <h1>thoughtsre Claude Code Workflows</h1>
@@ -189,18 +250,20 @@
 
       <div class="cycle">
         <span class="label">Delivery loop</span>
-        <div class="row">
-          <a class="step" href="#plan"><span class="n">Step 1</span><span class="t">Plan</span><span class="d">draft ↔ approve</span></a>
-          <span class="sep">→</span>
-          <a class="step" href="#implement"><span class="n">Step 2</span><span class="t">Implement</span><span class="d">build to plan</span></a>
-          <span class="sep">→</span>
-          <a class="step" href="#review"><span class="n">Step 3</span><span class="t">Review</span><span class="d">code-review rubric</span></a>
-          <span class="sep">→</span>
-          <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
-          <span class="sep">→</span>
-          <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">deliver + close</span></a>
+        <div class="loopwrap">
+          <div class="row">
+            <a class="step" href="#plan"><span class="n">Step 1</span><span class="t">Plan</span><span class="d">draft ↔ approve</span></a>
+            <span class="sep">→</span>
+            <a class="step" href="#implement"><span class="n">Step 2</span><span class="t">Implement</span><span class="d">build to plan</span></a>
+            <span class="sep">→</span>
+            <a class="step" href="#review"><span class="n">Step 3</span><span class="t">Review</span><span class="d">code-review rubric</span></a>
+            <span class="sep">→</span>
+            <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
+            <span class="sep">→</span>
+            <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">deliver + close</span></a>
+          </div>
+          <div class="loopback"><span class="loopcap">↻ repeats for every sub-issue — each merge unblocks the next</span></div>
         </div>
-        <div class="loopback"><span class="loopcap">↻ repeats for every sub-issue — each merge unblocks the next</span></div>
       </div>
 
       <div class="row" style="margin-top:16px">
@@ -397,18 +460,20 @@
 
           <div class="cycle bug">
             <span class="label">Delivery loop</span>
-            <div class="row">
-              <a class="step" href="#plan"><span class="n">Step 1</span><span class="t">Plan</span><span class="d">root cause</span></a>
-              <span class="sep">→</span>
-              <a class="step" href="#implement"><span class="n">Step 2</span><span class="t">Implement</span><span class="d">on fix/N branch</span></a>
-              <span class="sep">→</span>
-              <a class="step" href="#review"><span class="n">Step 3</span><span class="t">Review</span><span class="d">code-review rubric</span></a>
-              <span class="sep">→</span>
-              <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
-              <span class="sep">→</span>
-              <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">squash + close</span></a>
+            <div class="loopwrap">
+              <div class="row">
+                <a class="step" href="#plan"><span class="n">Step 1</span><span class="t">Plan</span><span class="d">root cause</span></a>
+                <span class="sep">→</span>
+                <a class="step" href="#implement"><span class="n">Step 2</span><span class="t">Implement</span><span class="d">on fix/N branch</span></a>
+                <span class="sep">→</span>
+                <a class="step" href="#review"><span class="n">Step 3</span><span class="t">Review</span><span class="d">code-review rubric</span></a>
+                <span class="sep">→</span>
+                <a class="step" href="#test"><span class="n">Step 4</span><span class="t">Test</span><span class="d">unit + full</span></a>
+                <span class="sep">→</span>
+                <a class="step" href="#merge"><span class="n">Step 5</span><span class="t">Merge</span><span class="d">squash + close</span></a>
+              </div>
+              <div class="loopback"><span class="loopcap">↻ repeats for each bug — sequential, one at a time</span></div>
             </div>
-            <div class="loopback"><span class="loopcap">↻ repeats for each bug — sequential, one at a time</span></div>
           </div>
 
           <div class="row" style="margin-top:16px">
@@ -421,6 +486,7 @@
 
   <footer>Two loops: sub-issues cycle through Implement until the milestone is ready; after Ship, it's back to Design for the next MVP / phase.</footer>
 
+</main>
 </div>
 </body>
 </html>
