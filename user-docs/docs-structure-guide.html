@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setting Up a Living Documentation System</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f6f7f9;
+    --text: #1c1e21;
+    --text-dim: #5b6270;
+    --border: #e2e5ea;
+    --accent: #3457d5;
+    --accent-bg: #eef1fd;
+    --code-bg: #f1f2f5;
+    --code-text: #b5148a;
+    --tag-bg: #eef1fd;
+    --pill: #3457d5;
+    --shadow: 0 1px 3px rgba(20,22,30,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --bg-alt: #1d2027;
+      --text: #e7e9ee;
+      --text-dim: #a0a6b3;
+      --border: #2b2f38;
+      --accent: #8fa4ff;
+      --accent-bg: #202544;
+      --code-bg: #1f222b;
+      --code-text: #ff9ed6;
+      --tag-bg: #202544;
+      --pill: #8fa4ff;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181d; --bg-alt: #1d2027; --text: #e7e9ee; --text-dim: #a0a6b3;
+    --border: #2b2f38; --accent: #8fa4ff; --accent-bg: #202544; --code-bg: #1f222b;
+    --code-text: #ff9ed6; --tag-bg: #202544; --pill: #8fa4ff; --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff; --bg-alt: #f6f7f9; --text: #1c1e21; --text-dim: #5b6270;
+    --border: #e2e5ea; --accent: #3457d5; --accent-bg: #eef1fd; --code-bg: #f1f2f5;
+    --code-text: #b5148a; --tag-bg: #eef1fd; --pill: #3457d5; --shadow: 0 1px 3px rgba(20,22,30,0.06);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    max-width: 1180px;
+    margin: 0 auto;
+    gap: 48px;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static !important; max-height: none !important; }
+  }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding: 32px 16px 32px 24px;
+    max-height: 100vh;
+    overflow-y: auto;
+    font-size: 13.5px;
+  }
+  nav.toc .back-link {
+    display: block;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 12.5px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  nav.toc .back-link:hover { color: var(--accent); }
+  nav.toc .toc-title {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  nav.toc ul { list-style: none; padding: 0; margin: 0; }
+  nav.toc li { margin: 2px 0; }
+  nav.toc a {
+    display: block;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border-left: 2px solid transparent;
+  }
+  nav.toc a:hover { background: var(--bg-alt); color: var(--text); }
+  nav.toc .sub { padding-left: 18px; font-size: 12.5px; }
+
+  main { padding: 48px 24px 96px 0; min-width: 0; }
+  header.hero {
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.hero .kicker {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  header.hero h1 {
+    font-size: 32px;
+    margin: 0 0 14px 0;
+    letter-spacing: -0.01em;
+  }
+  header.hero p.lede {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 68ch;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 22px;
+    margin-top: 56px;
+    margin-bottom: 14px;
+    padding-top: 8px;
+    scroll-margin-top: 16px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 16.5px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    scroll-margin-top: 16px;
+  }
+  h4 {
+    font-size: 14px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  p { margin: 0 0 14px 0; }
+  ul, ol { margin: 0 0 16px 0; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+
+  code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: 1em;
+  }
+
+  .card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
+  .card .path {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 2px 9px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .card p.purpose { color: var(--text-dim); font-size: 14px; margin-bottom: 12px; }
+  .card .contains-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--text-dim); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  tr:last-child td { border-bottom: none; }
+
+  .tree {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .tree .comment { color: var(--text-dim); }
+  .tree .dir { color: var(--accent); font-weight: 600; }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 20px 0;
+    font-size: 14.5px;
+  }
+  .callout strong { color: var(--accent); }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    padding-left: 30px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--text-dim);
+    border-radius: 4px;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--pill);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .two-col-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 700px) { .two-col-compare { grid-template-columns: 1fr; } }
+  .compare-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13.5px;
+  }
+  .compare-card h4 { margin-top: 0; color: var(--text); }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <a class="back-link" href="index.html">← Workflow guide</a>
+  <div class="toc-title">Contents</div>
+  <ul>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#principles">Guiding Principles</a></li>
+    <li><a href="#tree">Recommended Folder Tree</a></li>
+    <li><a href="#folders">Folder-by-Folder Guide</a>
+      <ul>
+        <li class="sub"><a href="#philosophy">philosophy/</a></li>
+        <li class="sub"><a href="#architecture">architecture/</a></li>
+        <li class="sub"><a href="#design">design/</a></li>
+        <li class="sub"><a href="#decisions">decisions/</a></li>
+        <li class="sub"><a href="#specs">specs/</a></li>
+        <li class="sub"><a href="#dev-process">dev-process/</a></li>
+        <li class="sub"><a href="#setup">setup/</a></li>
+        <li class="sub"><a href="#ideas">ideas/</a></li>
+      </ul>
+    </li>
+    <li><a href="#adr-format">ADR Template</a></li>
+    <li><a href="#claude-md">Writing a CLAUDE.md</a>
+      <ul>
+        <li class="sub"><a href="#claude-md-sections">Section-by-Section</a></li>
+        <li class="sub"><a href="#claude-md-style">Style Rules</a></li>
+        <li class="sub"><a href="#claude-md-template">Skeleton Template</a></li>
+      </ul>
+    </li>
+    <li><a href="#bootstrap">Bootstrap Checklist</a></li>
+    <li><a href="#upkeep">Keeping It Alive</a></li>
+  </ul>
+</nav>
+
+<main>
+  <header class="hero">
+    <div class="kicker">Documentation System Guide</div>
+    <h1>Setting Up a Living Documentation System</h1>
+    <p class="lede">
+      A generalized, project-agnostic guide to structuring a <code>docs/</code> folder and a root
+      <code>CLAUDE.md</code> (or equivalent AI-assistant instruction file) so that a codebase stays
+      legible to both humans and AI coding assistants as it grows. Distilled from a working example,
+      with all project-specific names and concepts removed.
+    </p>
+  </header>
+
+  <section id="intro">
+    <h2>Introduction</h2>
+    <p>
+      Most repositories accumulate documentation in one of two failure modes: nothing gets written
+      down, so every decision is re-litigated from scratch; or everything gets written down in one
+      sprawling wiki page that nobody trusts is current. Both fail an AI coding assistant the same
+      way they fail a new engineer — there is no reliable place to go to learn <em>why</em> the
+      system looks the way it does before making a change to it.
+    </p>
+    <p>
+      This guide describes a folder layout that separates documentation by <strong>the kind of
+      question it answers</strong> — not by feature, not by team, and not chronologically. Each
+      folder answers one category of question ("why did we choose X over Y", "how does the system
+      actually run", "what are we planning to build next") so that both a human and an AI assistant
+      can navigate directly to the right altitude instead of reading everything.
+    </p>
+    <p>
+      It also describes a root <code>CLAUDE.md</code> — a single file that acts as the entry point
+      and index into everything else, written for consumption by an AI coding assistant at the start
+      of every session.
+    </p>
+  </section>
+
+  <section id="principles">
+    <h2>Guiding Principles</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Separate the "why" from the "how"</h3>
+        <p class="purpose">
+          Decisions (why we chose X) and architecture (how X currently works) rot at different
+          rates. A decision record is a permanent, dated snapshot of reasoning at a point in time.
+          An architecture doc must track the live system. Mixing them means one of the two goes
+          stale silently.
+        </p>
+      </div>
+      <div class="card">
+        <h3>One folder, one question</h3>
+        <p class="purpose">
+          A reader (or an AI assistant) should be able to guess which folder to open just from the
+          question they're asking — "why," "how does it run," "what's the plan," "how do I set this
+          up," "what did we decide not to do (yet)." If a folder answers two unrelated questions,
+          split it.
+        </p>
+      </div>
+      <div class="card">
+        <h3>The index file is small and the details live elsewhere</h3>
+        <p class="purpose">
+          <code>CLAUDE.md</code> should read like a table of contents with just enough summary to
+          orient — one or two lines per linked doc, not the doc's content inlined. If the index file
+          grows past a couple hundred lines of prose, content has leaked in that belongs in
+          <code>docs/</code>.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Every doc is either "current" or explicitly dated</h3>
+        <p class="purpose">
+          Architecture docs describe the system <em>as it is now</em> and get edited in place.
+          Decision records are dated and immutable once accepted — superseding a decision means
+          writing a new ADR that supersedes the old one, not silently editing the old one away.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="tree">
+    <h2>Recommended Folder Tree</h2>
+    <p>Start from this shape and drop what you don't need — a small project may only need
+    <code>architecture/</code>, <code>decisions/</code>, and <code>setup/</code>.</p>
+    <div class="tree"><span class="dir">docs/</span>
+├── <span class="dir">philosophy/</span>        <span class="comment"># optional — the worldview/principles behind the design (small teams often skip this)</span>
+│   └── core.md
+├── <span class="dir">architecture/</span>      <span class="comment"># how the system currently works — living documents, edited in place</span>
+│   ├── system-overview.md
+│   ├── key-concepts.md
+│   ├── tech-stack.md
+│   └── ...
+├── <span class="dir">design/</span>            <span class="comment"># feature designs, user-facing flows, UX patterns</span>
+│   └── ...
+├── <span class="dir">decisions/</span>         <span class="comment"># ADRs — numbered, dated, immutable once accepted</span>
+│   ├── 001-title-in-kebab-case.md
+│   ├── 002-title-in-kebab-case.md
+│   └── ...
+├── <span class="dir">specs/</span>             <span class="comment"># protocol / API / data-format / DSL specifications</span>
+│   └── ...
+├── <span class="dir">dev-process/</span>       <span class="comment"># how work actually gets planned, built, and shipped</span>
+│   ├── overview.md
+│   └── ...
+├── <span class="dir">setup/</span>             <span class="comment"># environment bootstrap and operational runbooks</span>
+│   └── ...
+└── <span class="dir">ideas/</span>             <span class="comment"># parking lot — out-of-scope follow-ups captured, not lost</span>
+    └── ...</div>
+    <div class="callout">
+      <strong>Naming convention:</strong> use kebab-case filenames throughout
+      (<code>tech-stack.md</code>, not <code>TechStack.md</code>) and number
+      <code>decisions/</code> files with a zero-padded, monotonically increasing prefix
+      (<code>001-</code>, <code>002-</code>, …) so directory listings sort chronologically.
+    </div>
+  </section>
+
+  <section id="folders">
+    <h2>Folder-by-Folder Guide</h2>
+    <p>What belongs in each folder, what doesn't, and how to recognize when a doc is in the wrong place.</p>
+
+    <div class="card" id="philosophy">
+      <h3><span class="path">docs/philosophy/</span><span class="pill">optional</span></h3>
+      <p class="purpose">The worldview and design principles that motivate the architecture — the "why does this project exist and why does it look the way it does" layer, one level above any single decision.</p>
+      <div class="contains-label">Contains</div>
+      <ul>
+        <li>A <code>core.md</code> (or similarly named) document laying out the project's organizing principle and the reasoning that flows from it.</li>
+        <li>Deeper treatments of specific philosophical commitments that are load-bearing enough to warrant their own document (e.g., how the project thinks about a particular kind of ownership, safety, or user relationship).</li>
+      </ul>
+      <div class="contains-label">Does not contain</div>
+      <ul><li>Implementation detail, component diagrams, or anything that changes when the code changes — that belongs in <code>architecture/</code>.</li></ul>
+      <p class="purpose">Skip this folder entirely for projects without a strong opinionated worldview — most internal tools and CRUD apps don't need it. It earns its place when the "why" genuinely shapes many downstream technical choices and would otherwise get re-explained in every design doc.</p>
+    </div>
+
+    <div class="card" id="architecture">
+      <h3><span class="path">docs/architecture/</span></h3>
+      <p class="purpose">How the system is put together <em>right now</em>. These are living documents — edited in place as the system evolves, not dated snapshots. This is usually the largest and most-read folder.</p>
+      <div class="contains-label">Typical documents</div>
+      <ul>
+        <li><strong>system-overview</strong> — a top-level diagram (component or sequence) and a walkthrough of how a request/event flows through the system.</li>
+        <li><strong>key-concepts</strong> — the core abstractions/vocabulary of the codebase, defined once so every other doc can reference them by name instead of re-explaining.</li>
+        <li><strong>tech-stack</strong> — technology choices and why, plus deployment/runtime topology.</li>
+        <li>One document per major subsystem (e.g., messaging/eventing, storage layer, auth/security model, observability, a significant external integration).</li>
+        <li>A code map, if the repo is large enough that "where does X live" is a recurring question.</li>
+      </ul>
+      <div class="contains-label">Does not contain</div>
+      <ul><li>The reasoning trail for <em>why</em> the architecture looks this way instead of some alternative — that belongs in <code>decisions/</code>. Architecture docs describe the winning state, not the debate.</li></ul>
+    </div>
+
+    <div class="card" id="design">
+      <h3><span class="path">docs/design/</span></h3>
+      <p class="purpose">Feature-level and user-facing design — concrete scenarios, interaction flows, and UX patterns, as opposed to system-internal architecture.</p>
+      <div class="contains-label">Typical documents</div>
+      <ul>
+        <li>Interaction/user-flow docs written as concrete scenarios ("user does X, system responds Y") rather than abstract capability lists.</li>
+        <li>Cross-cutting design patterns used by multiple features (e.g., a shared orchestration or state-machine pattern reused across several feature areas).</li>
+        <li>Per-feature design docs for anything complex enough to need one before implementation starts.</li>
+      </ul>
+      <div class="contains-label">Does not contain</div>
+      <ul><li>Backend component wiring (→ <code>architecture/</code>) or the decision trail for why a design approach was picked over another (→ <code>decisions/</code>).</li></ul>
+    </div>
+
+    <div class="card" id="decisions">
+      <h3><span class="path">docs/decisions/</span></h3>
+      <p class="purpose">Architecture Decision Records (ADRs) — one file per significant, hard-to-reverse decision, capturing the context, the decision, the alternatives considered, and the consequences, at the time it was made. See the <a href="#adr-format">ADR template</a> below.</p>
+      <div class="contains-label">What warrants an ADR</div>
+      <ul>
+        <li>Choosing (or replacing) a core technology, protocol, or dependency.</li>
+        <li>A decision that would be expensive to reverse, or that a future contributor is likely to second-guess without the original context.</li>
+        <li>Anywhere you catch yourself explaining "we tried X first, but…" in a PR description — that reasoning belongs in an ADR instead, where it won't get lost.</li>
+      </ul>
+      <div class="contains-label">Rules</div>
+      <ul>
+        <li>Numbered sequentially, never renumbered or reused.</li>
+        <li>Immutable once <strong>Accepted</strong> — a changed decision gets a <em>new</em> ADR that supersedes the old one (update the old file's status, don't rewrite its content).</li>
+        <li>Don't mark an ADR <strong>Accepted</strong> while genuine open questions remain — use <strong>Proposed</strong> until they're resolved, even if the open questions look like "implementation details." A reader shouldn't have to guess whether "Accepted" means "fully settled" or "settled except for the parts we haven't figured out."</li>
+      </ul>
+    </div>
+
+    <div class="card" id="specs">
+      <h3><span class="path">docs/specs/</span></h3>
+      <p class="purpose">Technical specifications: API contracts, wire/message formats, protocol definitions, DSL grammars — anything with a formal shape that other code or other teams need to implement against precisely.</p>
+      <div class="contains-label">Contains</div>
+      <ul>
+        <li>Schema/contract definitions precise enough to implement against without reading source.</li>
+        <li>Protocol or state-machine specifications (e.g., a restricted workflow/DSL grammar).</li>
+      </ul>
+      <div class="contains-label">Relationship to project-management tooling</div>
+      <p class="purpose">Some teams also track higher-level "build specs" (phased implementation plans for a milestone) as issues in their project tracker rather than as files here. If you do that, say so explicitly in <code>CLAUDE.md</code> so it's clear <code>docs/specs/</code> holds durable technical specifications, while the tracker holds time-bound delivery plans.</p>
+    </div>
+
+    <div class="card" id="dev-process">
+      <h3><span class="path">docs/dev-process/</span></h3>
+      <p class="purpose">How work actually gets planned, implemented, reviewed, and shipped in this repository — the meta-process, as distinct from what the software itself does.</p>
+      <div class="contains-label">Typical documents</div>
+      <ul>
+        <li><strong>overview</strong> — the end-to-end process from idea to merged code: stages, gates, who/what is responsible at each stage.</li>
+        <li>Any process automation you rely on (e.g., a scripted delivery pipeline, an autonomous or semi-autonomous agent workflow) — documented as a spec, including its failure modes and escalation paths.</li>
+        <li>Operational runbooks tied to the delivery process (branching conventions, environment promotion, backup/restore procedures).</li>
+      </ul>
+      <div class="contains-label">Does not contain</div>
+      <ul><li>Generic "how to run the app locally" instructions — put those in <code>setup/</code> instead; keep this folder about <em>process</em>, not environment bootstrap.</li></ul>
+    </div>
+
+    <div class="card" id="setup">
+      <h3><span class="path">docs/setup/</span></h3>
+      <p class="purpose">Practical, imperative runbooks for getting a working environment running — the "I just cloned this repo, now what" folder.</p>
+      <div class="contains-label">Typical documents</div>
+      <ul>
+        <li>Prerequisite tooling and installation steps.</li>
+        <li>Launch/startup sequences for local development, with the exact commands to run.</li>
+        <li>Cloud/infra bootstrap docs (provisioning credentials, initial account setup) if the project needs external services.</li>
+      </ul>
+      <div class="contains-label">Does not contain</div>
+      <ul><li>Explanations of why the system is built this way — keep this folder purely operational and imperative; link out to <code>architecture/</code> for the "why."</li></ul>
+    </div>
+
+    <div class="card" id="ideas">
+      <h3><span class="path">docs/ideas/</span></h3>
+      <p class="purpose">A parking lot for follow-up work identified during implementation but out of scope for the change at hand — so it's captured durably instead of living only in a PR comment or a Slack message that will be forgotten.</p>
+      <div class="contains-label">Contains</div>
+      <ul>
+        <li>Short, informal notes: what the idea is, where it came from, and roughly how big it looks.</li>
+        <li>Deliberately low-ceremony — no fixed template, no status field. Promote an idea into a real ADR or design doc once someone commits to doing it.</li>
+      </ul>
+      <div class="contains-label">Rule of thumb</div>
+      <p class="purpose">Whenever a change surfaces an out-of-scope improvement worth doing later, write it here <em>alongside the PR that surfaced it</em>, not just in the PR description — PR descriptions get buried; this folder doesn't.</p>
+    </div>
+  </section>
+
+  <section id="adr-format">
+    <h2>ADR Template</h2>
+    <p>Use this shape for every file in <code>docs/decisions/</code>:</p>
+    <pre><code># ADR-NNN: &lt;short, decision-shaped title&gt;
+
+**Status**: Proposed | Accepted | Superseded by ADR-XXX
+**Date**: YYYY-MM-DD
+
+## Context
+
+What situation forced this decision? What were we doing before, and what changed
+or what did we learn that made the previous approach worth revisiting?
+
+## Decision
+
+The decision itself, stated in one or two sentences, up front.
+
+## Rationale
+
+### Why the previous/rejected approach falls short
+...
+
+### Why this approach
+...
+
+### Alternatives considered
+- **Alternative A** — what it offers, why it was rejected
+- **Alternative B** — what it offers, why it was rejected
+
+## Consequences
+
+What changes as a direct result — code that gets retired, new maintenance burden
+taken on, follow-up work created, anything that becomes easier or harder.</code></pre>
+    <div class="callout">
+      Keep <strong>Consequences</strong> honest about trade-offs, not just upside — "we now own this
+      protocol ourselves, which means tailoring it to our needs but also maintaining it" reads very
+      differently, and more usefully, six months later than a decision record that only lists benefits.
+    </div>
+  </section>
+
+  <section id="claude-md">
+    <h2>Writing a CLAUDE.md</h2>
+    <p>
+      <code>CLAUDE.md</code> (or your assistant's equivalent instruction file) is loaded at the start
+      of every AI-assisted session in the repository. Treat it as the front door: an index into
+      <code>docs/</code>, a statement of non-negotiable working rules, and enough project context
+      that the assistant doesn't need to re-derive the basics from source every time.
+    </p>
+
+    <h3 id="claude-md-sections">Section-by-Section</h3>
+    <table>
+      <thead><tr><th>Section</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Project Overview</strong></td><td>What the project is, in a couple of sentences, plus its core philosophy/principles as a short bulleted list if the project has strong opinions worth stating up front.</td></tr>
+        <tr><td><strong>Documentation Structure</strong></td><td>A one-line description of what each <code>docs/</code> subfolder contains, plus — critically — a one-line summary <em>per file</em> inside <code>decisions/</code> as the ADR list grows. This is the single most valuable section for an assistant: it turns "go read 15 files" into "here's the two-sentence version, follow the link if you need more."</td></tr>
+        <tr><td><strong>Key Concepts</strong></td><td>The project's core vocabulary defined in one place, each term linked to where it's elaborated in <code>architecture/</code>. Prevents every session from re-deriving terminology from scratch.</td></tr>
+        <tr><td><strong>Architecture (summary)</strong></td><td>A short summary of runtime topology, major subsystems, and security posture — each with a link to the full doc. Summarize, don't duplicate.</td></tr>
+        <tr><td><strong>Working Directory / Environment Conventions</strong></td><td>Hard operational rules that are easy to violate by default and expensive when violated — e.g., "always run commands from the repo root," "this is a worktree, not a parent checkout." State these as imperative rules, not narrative.</td></tr>
+        <tr><td><strong>Build &amp; Development</strong></td><td>The concrete toolchain: language/runtime version, package manager, container tooling, migration tooling, and the couple of scripts that start/stop everything.</td></tr>
+        <tr><td><strong>Development Process</strong></td><td>A short pointer to <code>dev-process/overview.md</code> plus the stage list inline if it's short enough to scan at a glance.</td></tr>
+        <tr><td><strong>Testing</strong></td><td>Test runner and how to invoke it. If test commands are still being figured out, say so explicitly rather than leaving the section silently absent.</td></tr>
+        <tr><td><strong>Project Structure</strong></td><td>A shallow directory tree of the actual repo (not the docs folder) with a one-line purpose per top-level directory.</td></tr>
+        <tr><td><strong>Deferred Decisions</strong></td><td>An explicit, honestly-maintained list of "we know this is unresolved." See below — this section matters more than it looks.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Why "Deferred Decisions" earns its place:</strong> an AI assistant without a source of
+      truth for "what's still undecided" will confidently invent an answer when asked about it,
+      because a plausible-sounding answer is *available* even when no real one exists. An explicit,
+      maintained list of open areas gives the assistant permission to say "this is designed but not
+      yet implemented" or "this is genuinely undecided" instead of fabricating a specific mechanism.
+      Update it every time something moves from deferred to designed.
+    </div>
+
+    <h3 id="claude-md-style">Style Rules</h3>
+    <ul>
+      <li><strong>Index, don't inline.</strong> If you're pasting more than a paragraph of an existing doc's content into <code>CLAUDE.md</code>, link to the doc instead and summarize in one line.</li>
+      <li><strong>State rules imperatively.</strong> "Always run commands from the primary working directory" reads and is followed more reliably than a paragraph explaining why worktrees can be confusing.</li>
+      <li><strong>Prefix true overrides with IMPORTANT.</strong> Reserve this for the handful of rules that should win over an assistant's default instincts (e.g., "never squash-merge," "never delete without confirming"). Overusing it dilutes the signal.</li>
+      <li><strong>Cross-reference ADRs inline.</strong> When a section of <code>CLAUDE.md</code> summarizes a decision, link the ADR that made it (<code>see ADR-004</code>) so the reasoning trail is one click away instead of assumed.</li>
+      <li><strong>Keep it current on every merge that changes structure.</strong> A stale <code>CLAUDE.md</code> is worse than a short one — it actively misdirects. Treat "update <code>CLAUDE.md</code>" as part of the definition of done for any change that adds a new subsystem, ADR, or process stage.</li>
+      <li><strong>Prefer plain prose over emoji and heavy formatting.</strong> This file gets parsed by an LLM at the start of every session — clarity and scanability matter more than visual flourish.</li>
+    </ul>
+
+    <h3 id="claude-md-template">Skeleton Template</h3>
+    <pre><code># CLAUDE.md
+
+Guidance for AI coding assistants working in this repository.
+
+## Project Overview
+
+&lt;One to three sentences: what this project is and who it's for.&gt;
+
+### Core Philosophy   (optional — only if the project has strong opinions)
+
+- &lt;Principle 1, stated as a stance, not a feature&gt;
+- &lt;Principle 2&gt;
+
+## Documentation Structure
+
+Detailed docs live in `docs/`:
+
+- `docs/architecture/` — how the system currently works
+  - `system-overview.md` — top-level diagram and walkthrough
+  - `key-concepts.md` — core abstractions and vocabulary
+  - ...
+- `docs/design/` — feature and UX design
+- `docs/decisions/` — ADRs (one-line summary per file; grows as decisions accrue)
+  - `001-&lt;slug&gt;.md` — &lt;one-line takeaway&gt;
+  - `002-&lt;slug&gt;.md` — &lt;one-line takeaway&gt;
+- `docs/specs/` — technical specifications
+- `docs/dev-process/` — how work is planned, built, and shipped
+- `docs/setup/` — environment bootstrap and runbooks
+- `docs/ideas/` — captured out-of-scope follow-ups
+
+## Key Concepts
+
+See `docs/architecture/key-concepts.md` for full definitions.
+
+- **&lt;Term&gt;**: &lt;one-line definition&gt;
+- **&lt;Term&gt;**: &lt;one-line definition&gt;
+
+## Architecture
+
+&lt;Short summary — runtime topology, major subsystems, security posture —
+each pointing to its doc in `docs/architecture/`.&gt;
+
+## Working Directory / Environment Conventions
+
+- &lt;Hard rule 1&gt;
+- &lt;Hard rule 2&gt;
+
+## Build &amp; Development
+
+- &lt;Language/runtime + version&gt;
+- &lt;Package manager and key commands&gt;
+- &lt;How to start/stop the local environment&gt;
+
+## Development Process
+
+See `docs/dev-process/overview.md`. &lt;Stage list if short enough to scan.&gt;
+
+## Testing
+
+&lt;Test runner and invocation. State explicitly if this is still TBD.&gt;
+
+## Project Structure
+
+```
+src/     — &lt;one-line purpose&gt;
+tests/   — &lt;one-line purpose&gt;
+docs/    — architecture, design, specs, decisions, process documentation
+...
+```
+
+## Deferred Decisions
+
+Explicitly unresolved areas — update as items move from deferred to designed:
+
+- &lt;Area&gt; — &lt;what's decided so far, what's still open&gt;</code></pre>
+  </section>
+
+  <section id="bootstrap">
+    <h2>Bootstrap Checklist</h2>
+    <p>Steps to stand this up from scratch in a new project.</p>
+    <ol class="checklist">
+      <li>Create <code>docs/architecture/</code>, <code>docs/decisions/</code>, and <code>docs/setup/</code> first — these three cover most projects' immediate needs. Add <code>design/</code>, <code>specs/</code>, <code>dev-process/</code>, <code>ideas/</code>, and <code>philosophy/</code> only once you have real content for them; an empty folder signals structure without substance.</li>
+      <li>Write <code>docs/architecture/key-concepts.md</code> and <code>system-overview.md</code> early — before the codebase grows past the point where one person can describe it from memory.</li>
+      <li>Retroactively write ADRs for the two or three decisions you've already made that would be expensive to reverse, even if they weren't documented at the time. Backfilling early is far cheaper than backfilling after the reasoning is forgotten.</li>
+      <li>Write <code>CLAUDE.md</code> last, once there's at least a little real content to index — an index into empty folders is not useful. Use the <a href="#claude-md-template">skeleton template</a> above.</li>
+      <li>Add a repo-structure section to <code>CLAUDE.md</code> reflecting the actual top-level directories, not an aspirational layout.</li>
+      <li>Add the "Deferred Decisions" section immediately, even if it's short — it's easiest to keep honest if it exists from the start rather than being added after the assistant has already fabricated a few answers.</li>
+    </ol>
+  </section>
+
+  <section id="upkeep">
+    <h2>Keeping It Alive</h2>
+    <div class="two-col-compare">
+      <div class="compare-card">
+        <h4>Do</h4>
+        <ul>
+          <li>Update <code>CLAUDE.md</code>'s documentation index in the same PR that adds a new ADR or architecture doc.</li>
+          <li>Move an item out of "Deferred Decisions" the moment it's actually designed — don't let the list go stale in the optimistic direction either.</li>
+          <li>Write the ADR <em>during</em> the work that makes the decision, not after — the alternatives-considered section degrades fast from memory.</li>
+          <li>Let architecture docs drift toward the code by editing them in the same PR that changes the behavior they describe.</li>
+        </ul>
+      </div>
+      <div class="compare-card">
+        <h4>Avoid</h4>
+        <ul>
+          <li>Editing an <strong>Accepted</strong> ADR's content after the fact — supersede it with a new one instead.</li>
+          <li>Letting <code>docs/ideas/</code> become a second backlog system — it's a capture point, not a tracker; promote or discard, don't let it accumulate indefinitely.</li>
+          <li>Duplicating the same explanation across <code>CLAUDE.md</code> and a <code>docs/</code> file — pick one owner per fact and link to it everywhere else.</li>
+          <li>Treating <code>docs/setup/</code> as a place to explain design rationale — keep it purely imperative so it stays skimmable under time pressure.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Generated as a general-purpose template, derived from — and stripped of all specifics of — an
+    existing project's documentation layout.
+  </footer>
+</main>
+</div>
+</body>
+</html>
