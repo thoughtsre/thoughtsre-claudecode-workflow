@@ -190,6 +190,8 @@
     <li><a href="#configure">Configure</a></li>
     <li><a href="#spec">Spec the MVP</a></li>
     <li><a href="#breakdown">Break down into sub-issues</a></li>
+    <li><a href="#docs">Update docs (optional)</a></li>
+    <li><a href="#worktree">Create milestone worktree</a></li>
     <li><a href="#plan">Implement loop</a>
       <ul>
         <li class="sub"><a href="#plan">Plan</a></li>
@@ -240,6 +242,8 @@
         <a class="step design" href="#spec"><span class="n">Design 1</span><span class="t">Spec the MVP</span><span class="d">one GitHub issue</span></a>
         <span class="sep">→</span>
         <a class="step design" href="#breakdown"><span class="n">Design 2</span><span class="t">Break down</span><span class="d">into sub-issues</span></a>
+        <span class="sep">→</span>
+        <a class="step design" href="#docs"><span class="n">Optional</span><span class="t">📝 Update docs</span><span class="d">capture design upgrades / ADRs in main</span></a>
       </div>
     </div>
 
@@ -247,6 +251,10 @@
 
     <div class="phase implement">
       <span class="plabel">Implement · deliver each sub-issue</span>
+
+      <div class="row" style="margin-bottom:14px">
+        <a class="step neutral" href="#worktree"><span class="n">Per milestone</span><span class="t">🌳 Create worktree</span><span class="d">manually, off main — before /feature-sprint</span></a>
+      </div>
 
       <div class="cycle">
         <span class="label">Delivery loop</span>
@@ -334,8 +342,30 @@
     </ul>
   </section>
 
+  <section id="docs">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge design">3</span> Update docs <span class="subtle">— optional</span></h3>
+    <p class="lead">Capture any design upgrades or ADRs in main before implementation starts.</p>
+    <ul>
+      <li>Spec'ing and breaking down the MVP often surfaces decisions worth recording — new or revised architecture, conventions, or trade-offs.</li>
+      <li>Write these up and merge them into <code>main</code> <b>before</b> implementation begins, so every sub-issue — and the milestone worktree, cut fresh from <code>main</code> — starts from the same up-to-date source of truth.</li>
+      <li>See the <a href="docs-structure-guide.html">docs structure guide</a> for what belongs where — project guide, decision records, or user docs.</li>
+    </ul>
+  </section>
+
   <!-- ══════ PHASE 3 · IMPLEMENT ══════ -->
   <div class="phasehead implement"><h2>Implement</h2><span class="tag">several sub-issues in flight at once — merge is linear</span></div>
+
+  <section id="worktree">
+    <a class="up" href="#top">↑ diagram</a>
+    <h3><span class="badge neutral">🌳</span> Create the milestone worktree</h3>
+    <p class="lead">A one-time, manual step per milestone — before the delivery loop can start.</p>
+    <ul>
+      <li><code>/feature-sprint</code> never creates this worktree itself — it hard-requires running from inside one, on a non-default branch with a clean tree.</li>
+      <li>From the main repo checkout: <code>git worktree add ../repo-mvp1 -b mvp1 main</code> — creates a sibling checkout on a fresh <code>mvp1</code> branch off <code>main</code>.</li>
+      <li><code>cd</code> into it, then run <code>/feature-sprint &lt;specs#&gt;</code> from there — every sub-issue's per-issue worktree, and the final milestone branch, build on top of this one.</li>
+    </ul>
+  </section>
 
   <section id="plan">
     <a class="up" href="#top">↑ diagram</a>
@@ -360,7 +390,7 @@
       <li>Never pushes, opens a PR, or merges — the workflow owns delivery.</li>
     </ul>
     <div class="split">
-      <div class="feat"><div class="h">🚀 Feature</div><p>A per-issue git worktree off the milestone branch HEAD, so several sub-issues build in parallel.</p></div>
+      <div class="feat"><div class="h">🚀 Feature</div><p>Runs from inside the milestone worktree you create beforehand (see <a href="#worktree">Create the milestone worktree</a>) — each sub-issue then gets its own per-issue worktree off the milestone HEAD, so several build in parallel.</p></div>
       <div class="bug"><div class="h">🐞 Bug</div><p>Branch <code>fix/N-…</code> off the freshly-pulled default branch. Strictly sequential — one bug at a time.</p></div>
     </div>
   </section>
